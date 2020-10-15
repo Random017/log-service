@@ -1,0 +1,12 @@
+server:
+  port: 10028
+  servlet:
+    context-path: /log
+    session:
+      cookie:
+        http-only: true
+spring:
+  profiles:
+    active: dev
+  application:
+    name: log-server
