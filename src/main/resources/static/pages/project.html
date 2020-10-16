@@ -1,0 +1,362 @@
+<!--Create by RMC on  -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>文件管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../assets/layui/css/layui.css" media="all">
+</head>
+
+<body class="layui-layout-body">
+
+<div class="layui-layout layui-layout-admin">
+
+    <div class="layui-body" style="position: static">
+
+        <!--        <div class="layui-btn-group opToolBut">-->
+        <!--            <button class="layui-btn layui-btn-lg layui-btn-warm" id="uploaNewdFile">-->
+        <!--                <i class="layui-icon">&#xe67c;</i>点击或拖拽到此处上传-->
+        <!--            </button>-->
+        <!--            <button class="layui-btn layui-btn-lg layui-btn-danger" data-type="deleteFiles" style="margin-left: 100px">-->
+        <!--                删除文件-->
+        <!--            </button>-->
+        <!--        </div>-->
+
+        <!--元数据表格-->
+
+        <table id="dataListTable" lay-filter="dataListTable"></table>
+    </div>
+</div>
+
+<!--新增弹框-->
+<div id="addNewDialog" style="display: none">
+
+    <form class="layui-form" action="" lay-filter="example">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">项目名称:</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" lay-verify="title" autocomplete="off" placeholder="请输入标题"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">日志目录:</label>
+            <div class="layui-input-block">
+                <input type="text" name="logDirectory" lay-verify="title" autocomplete="off" placeholder="请输入标题"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">日志文件名:</label>
+            <div class="layui-input-block">
+                <input type="text" name="logFilename" lay-verify="title" autocomplete="off" placeholder="请输入标题"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">日志类型:</label>
+            <div class="layui-input-block">
+                <input type="radio" name="logType" value="nginx" title="Nginx格式" checked="">
+                <input type="radio" name="logType" value="spring" title="Spring格式">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="button" class="layui-btn layui-btn-normal" id="LAY-component-form-setval">赋值</button>
+                <button type="button" class="layui-btn layui-btn-normal" id="LAY-component-form-getval">取值</button>
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<!--头部工具栏-->
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm  layui-btn-normal" lay-event="addNewOne">
+            <i class="layui-icon layui-icon-add-1"></i>新建项目
+        </button>
+        <button class="layui-btn layui-btn-sm" lay-event="getCheckData">获取选中行数据</button>
+        <button class="layui-btn layui-btn-sm" lay-event="getCheckLength">获取选中数目</button>
+        <button class="layui-btn layui-btn-sm" lay-event="isAll">验证是否全选</button>
+    </div>
+</script>
+
+
+<!--右侧行工具栏-->
+<script type="text/html" id="rightRowTool">
+    <div>
+        <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="detail">
+            <i class="layui-icon layui-icon-search"></i>详情
+        </button>
+
+        <button class="layui-btn layui-btn-xs layui-btn-warm" lay-event="edit"><i
+                class="layui-icon layui-icon-edit"></i>编辑
+        </button>
+
+        <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="deleteOne"><i
+                class="layui-icon layui-icon-delete"></i>删除
+        </button>
+    </div>
+</script>
+
+
+<script src="../assets/layui/layui.all.js" charset="utf-8"></script>
+<script>
+
+    // 0 感叹号， 1 正确， 2 错误，3 问号 ，4 加密 ，5 哭脸  ，6 笑脸
+    var global_fileTable;
+    layui.use(['laydate', 'laypage', 'layer', 'table', 'carousel', 'upload', 'element', 'slider', 'jquery', 'form'], function () {
+        let dataTable = layui.table, upload = layui.upload, $ = layui.$, form = layui.form;
+        global_fileTable = dataTable;
+        dataTable.render({
+            id: 'dataListTable',
+            elem: '#dataListTable',
+            toolbar: '#toolbar', //开启头部工具栏，并为其绑定左侧模板
+            height: 'full-150', //自适应高度，距离浏览器上下总和
+            skin: 'line', //行边框风格
+            even: true, //开启隔行背景
+            size: 'lg', //小尺寸的表格
+            url: '/v0/api/file/findByCondition',
+            method: 'get',
+            request: {
+                pageName: 'page'//页码的参数名称，默认：page,
+            },
+            parseData: function (res) { //res 即为原始返回的数据
+                return {
+                    "code": 0, //解析接口状态
+                    "msg": '', //解析提示文本
+                    "count": res.totalElements, //解析数据长度
+                    "data": res.content //解析数据列表
+                };
+            },
+
+            cols: [[ //表头
+                {
+                    field: 'id',
+                    type: 'radio'
+                },
+                {
+                    title: '序号',
+                    type: 'numbers'
+                },
+                {
+                    field: 'filename',
+                    title: '文件名',
+                    width: 600,
+                    templet: function (d) {
+                        return '<a href="' + d.url + '" target="_blank" style="color:#007DDB;">' + d.filename + '</a>'
+                    }
+                },
+                {
+                    field: 'length',
+                    title: '大小',
+                    width: 90,
+                    templet: function (d) {
+                        var len = d.length;
+                        if (len < 1024) {
+                            return len + " B";
+                        }
+                        len = len / 1024;
+                        if (len < 1024) {
+                            return len.toFixed(1) + " KB";
+                        }
+                        len = len / 1024;
+                        if (len < 1024) {
+                            return len.toFixed(1) + " MB";
+                        }
+                        len = len / 1024;
+                        if (len < 1024) {
+                            return len.toFixed(1) + " GB";
+                        }
+                    }
+                },
+                {
+                    field: 'qrCode',
+                    title: '二维码',
+                    width: 90,
+                    templet: function (d) {
+                        return '<img  id="pitureChange" src="' + d.qrCode + '" height="100%"/>'
+                    }
+                },
+                {
+                    field: 'createAt',
+                    title: '上传时间',
+                    width: 180,
+                    sort: true,
+                    templet: function (d) {
+                        let t = d.createAt;
+                        t = t || 1599613749000
+                        return timeFormat(t);
+                    }
+                },
+
+            ]]
+        });
+
+        //头工具栏事件
+        dataTable.on('toolbar(dataListTable)', function (obj) {
+            let event = obj.event
+            if ('addNewOne' === event) {
+
+                layer.open({
+                    type: 1,
+                    area: ['600px'],
+                    btn: ['提交', '取消'],
+                    //提交
+                    yes: function (index, layero) {
+                        var d = {};
+                        d.id = data.id;
+                        var t = $('form').serializeArray();
+                        $.each(t, function () {
+                            d[this.name] = this.value;
+                        });
+                        $.ajax({
+                            type: 'POST',
+                            url: BASE_URL + "/backend/font/manage/update",
+                            data: JSON.stringify(d),
+                            contentType: "application/json; charset=utf-8",
+                            dataType: 'json',
+                            success: function (data) {
+                                if (data.success) {
+                                    global_fileTable.reload('dataListTable');
+                                    layer.msg(data.message, {icon: 1});
+                                } else {
+                                    layer.alert(data.message, {icon: 2})
+                                }
+                            }
+                        });
+                        layer.close(index);
+                        $("#tanchu").css("display", "none")
+                    },
+                    //取消
+                    btn2: function (index, layero) {
+                        layer.close(index);
+                    },
+                    //右上角
+                    cancel: function () {
+                        return true;
+                    },
+                    content: $('#addNewDialog')
+                })
+
+            } else if ('test' === event) {
+
+            }
+
+
+            // var checkStatus = table.checkStatus(obj.config.id);
+            switch (obj.event) {
+                case 'addNewOne':
+                    layer.msg("sfasdfasf");
+                    break;
+
+                case 'getCheckData':
+                    var data = checkStatus.data;
+                    layer.alert(JSON.stringify(data));
+                    break;
+                case 'getCheckLength':
+                    var data = checkStatus.data;
+                    layer.msg('选中了：' + data.length + ' 个');
+                    break;
+                case 'isAll':
+                    layer.msg(checkStatus.isAll ? '全选' : '未全选');
+                    break;
+
+                //自定义头工具栏右侧图标 - 提示
+                case 'LAYTABLE_TIPS':
+                    layer.alert('这是工具栏右侧自定义的一个图标按钮');
+                    break;
+            }
+            ;
+        });
+
+        //监听行工具事件
+        dataTable.on('tool(dataListTable)', function (obj) {
+            var data = obj.data;
+            //console.log(obj)
+            if (obj.event === 'del') {
+                layer.confirm('真的删除行么', function (index) {
+                    obj.del();
+                    layer.close(index);
+                });
+            } else if (obj.event === 'edit') {
+                layer.prompt({
+                    formType: 2
+                    , value: data.email
+                }, function (value, index) {
+                    obj.update({
+                        email: value
+                    });
+                    layer.close(index);
+                });
+            }
+        });
+
+
+        //自定义验证规则
+        form.verify({
+            title: function (value) {
+                if (value.length < 5) {
+                    return '标题至少得5个字符啊';
+                }
+            }
+            , pass: [
+                /^[\S]{6,12}$/
+                , '密码必须6到12位，且不能出现空格'
+            ]
+            , content: function (value) {
+                layedit.sync(editIndex);
+            }
+        });
+
+        //监听指定开关
+        form.on('switch(switchTest)', function (data) {
+            layer.msg('开关checked：' + (this.checked ? 'true' : 'false'), {
+                offset: '6px'
+            });
+            layer.tips('温馨提示：请注意开关状态的文字可以随意定义，而不仅仅是ON|OFF', data.othis)
+        });
+
+        //监听提交
+        form.on('submit(demo1)', function (data) {
+            layer.alert(JSON.stringify(data.field), {
+                title: '最终的提交信息'
+            })
+            return false;
+        });
+
+        //表单赋值
+        layui.$('#LAY-component-form-setval').on('click', function () {
+            form.val('example', {
+                "username": "贤心" // "name": "value"
+                , "password": "123456"
+                , "interest": 1
+                , "like[write]": true //复选框选中状态
+                , "close": true //开关状态
+                , "sex": "女"
+                , "desc": "我爱 layui"
+            });
+        });
+
+        //表单取值
+        layui.$('#LAY-component-form-getval').on('click', function () {
+            var data = form.val('example');
+            alert(JSON.stringify(data));
+        });
+
+    });
+
+</script>
+</body>
+</html>
+
