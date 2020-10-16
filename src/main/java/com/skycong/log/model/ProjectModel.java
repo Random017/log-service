@@ -1,12 +1,14 @@
 package com.skycong.log.model;
 
+import org.springframework.data.annotation.Id;
+
 /**
  * @author ruanmingcong 2020.10.15 11:50
  */
 public class ProjectModel {
 
-    public static final String COLLECTION_NAME = "ProjectModel";
-
+    @Id
+    private String id;
     /**
      * 项目名称
      */
@@ -65,5 +67,13 @@ public class ProjectModel {
         sb.append(", logType='").append(logType).append('\'');
         sb.append('}');
         return sb.toString();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

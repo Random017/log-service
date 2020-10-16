@@ -1,0 +1,39 @@
+###
+#post 新增项目接口
+POST {{host}}/log/api/project
+Content-Type: application/json
+
+{
+  "name": "demoData{{$timestamp}}",
+  "logDirectory": "demoData",
+  "logFilename": "demoData",
+  "logType": "demoData"
+}
+
+### GET request with a header
+GET {{host}}/log/api/project/all
+Accept: application/json
+
+###
+#post 新增项目接口
+PUT {{host}}/log/api/project
+Content-Type: application/json
+
+{
+  "id":"5f896c7e9a21d05ed0f9ae9e",
+  "name": "demoData{{$timestamp}}",
+  "logDirectory": "demoData",
+  "logFilename": "demoData",
+  "logType": "demoData"
+}
+
+###
+#post 新增项目接口
+#
+#
+DELETE {{host}}/log/api/project
+Content-Type: application/json
+
+{
+  "id": "5f896c829a21d05ed0f9aea0"
+}
